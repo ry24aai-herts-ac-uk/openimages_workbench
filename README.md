@@ -1,186 +1,118 @@
-<h1 align="center"> ~ Google Open Images Dataset v5 ToolKit ~ </h1>
-<h1 align="center"> ~ YOLO formatted Annotations Class Wise ~ </h1>
-<h1 align="center"> ~ Object Detection Dataset ~ </h1>
-<h1 align="center"> ~ Powered by Rust · Tauri · SvelteKit ~ </h1>
+# Open Images Workbench
 
-## About
+A modern Rust + Tauri desktop workbench for downloading, exploring, converting, and exporting **Open Images** datasets across multiple versions, model families, and annotation styles. It evolves the original `OIDv5_ToolKit-YOLOv3`, which focused on downloading and visualizing one or more classes from Open Images v5 with YOLO-oriented workflows.
 
-**openimages_workbench** is a modern, cross-platform desktop application that rebuilds the original Python-based [OIDv5_ToolKit-YOLOv3](https://github.com/RajashekarY/OIDv5_ToolKit-YOLOv3) with a Rust backend and a SvelteKit UI delivered through [Tauri](https://tauri.app/).
+## Overview
 
-It lets you download any of the 600 object-detection classes (or 19 000+ image-level label classes) from the [Open Images Dataset v5](https://storage.googleapis.com/openimages/web/index.html) — without pulling the whole multi-terabyte archive — and produces YOLO-formatted annotations ready for darknet / ultralytics training.
+Open Images Workbench is a rewrite of the original Python-based toolkit into a desktop-first application powered by **Rust**, **Tauri**, and a **SvelteKit** UI. The goal is to keep the practical strengths of the original project—class-based dataset download and inspection—while expanding support for newer Open Images releases, multiple detection and segmentation workflows, and a broader set of annotation formats.
 
----
+The original repository positioned itself as a tool to download and visualize single or multiple classes from the Open Images v5 dataset. This new repository broadens that idea into a reusable workbench for dataset preparation, conversion, validation, and export, without locking the project to a single dataset version or to YOLOv3 alone.
 
-## Why this repo?
+## Why this rewrite exists
 
-Do you want to build your own object detector but don't have enough images? Do you want a fast, native GUI instead of a Python CLI? Have you already discovered [Open Images Dataset v5](https://storage.googleapis.com/openimages/web/index.html) with its [600](https://storage.googleapis.com/openimages/2018_04/bbox_labels_600_hierarchy_visualizer/circle.html) classes and more than 1 700 000 annotated images, but you don't want to download gigabytes of data you don't need?
+The original toolkit name and workflow were tightly coupled to **OIDv5** and **YOLOv3**. Open Images has later releases such as **V7**, and modern vision workflows commonly need flexible conversion pipelines that can target several model ecosystems and annotation conventions rather than one training format.
 
-This workbench gives you the best of that dataset with a polished desktop experience — backed by the speed of Rust and a reactive SvelteKit interface.
+This rewrite is intended to provide:
 
----
+- Multi-version Open Images support.
+- Multiple algorithm targets beyond YOLOv3.
+- Multiple annotation styles and export formats.
+- A faster, cleaner, desktop-native experience.
+- A UI that makes dataset operations easier to inspect and repeat.
 
-## Tech Stack
+## Planned capabilities
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | [Rust](https://www.rust-lang.org/) |
-| Desktop shell | [Tauri v2](https://tauri.app/) |
-| Frontend UI | [SvelteKit](https://kit.svelte.dev/) |
-| Dataset | [Open Images v5](https://storage.googleapis.com/openimages/web/index.html) |
+The scope of Open Images Workbench includes the following capabilities:
 
----
+- Download one or more classes from supported Open Images releases, preserving the class-oriented workflow that made the original toolkit useful.
+- Explore dataset metadata and inspect image/label structure before training.
+- Export datasets for different model families, including YOLO-style workflows and future non-YOLO targets.
+- Support different annotation styles, such as Open Images native annotations and normalized YOLO-style labels; similar Open Images toolkit forks have already shown the value of optional YOLO label export.
+- Save repeatable dataset configurations so experiments can be reproduced more easily across projects.
+- Provide desktop visualization and validation tools to catch issues early in the data-preparation pipeline.
 
-## Dataset Statistics
+## Design goals
 
-**Object Detection**
+Open Images Workbench is being built around a few core principles:
 
-| | Train | Validation | Test | # Classes |
-|---|---|---|---|---|
-| Images | 1,743,042 | 41,620 | 125,436 | — |
-| Boxes | 14,610,229 | 204,621 | 625,282 | 600 |
+- **Version-agnostic**: avoid hardcoding assumptions around Open Images v5 when newer releases exist.
+- **Model-agnostic**: support dataset preparation for multiple training stacks instead of binding the project name or UX to one detector family.
+- **Format-aware**: make annotation conversion explicit, inspectable, and reversible wherever possible.
+- **Desktop-first**: use Tauri to deliver a lightweight desktop shell with web-style UI ergonomics.
+- **Reproducible**: treat dataset selection, filtering, conversion, and export as saved project state rather than ad hoc command history.
 
-**Image Classification**
+## Architecture
 
-| | Train | Validation | Test | # Classes |
-|---|---|---|---|---|
-| Images | 9,011,219 | 41,620 | 125,436 | — |
-| Machine-Generated Labels | 78,977,695 | 512,093 | 1,545,835 | 7,870 |
-| Human-Verified Labels | 27,894,289 | 551,390 | 1,667,399 | 19,794 |
+The repository is intended to use the following stack:
 
----
+- **Rust** for core services, file operations, dataset processing, and high-performance conversion logic.
+- **Tauri** for the cross-platform desktop application shell.
+- **SvelteKit** for the frontend user interface and application flow.
 
-## Features
+This stack is a strong fit for a local desktop tool that needs efficient filesystem access, responsive UI behavior, and a lighter runtime footprint than many Electron-based alternatives.
 
-**(Object Detection)**
+## Migration from the original repo
 
-- Download any of the [600](https://storage.googleapis.com/openimages/2018_04/bbox_labels_600_hierarchy_visualizer/circle.html) classes individually, with automatic bounding-box creation for each image
-- Download multiple classes into separated folders or a shared folder with a unified annotation file
-- Filter by attributes: `IsOccluded`, `IsTruncated`, `IsGroupOf`, `IsDepiction`, `IsInside`
-- Limit the number of images downloaded per class
-- Resume interrupted downloads from the last downloaded image
+This project is a spiritual and functional successor to [`OIDv5_ToolKit-YOLOv3`](https://github.com/RajashekarY/OIDv5_ToolKit-YOLOv3). The original repo centered on downloading and visualizing selected classes from Open Images v5, while community forks around the same toolkit pattern added options such as YOLO label export and more organized dataset structure.
 
-**(Image Classification)**
+Open Images Workbench keeps that practical dataset-tooling DNA, but shifts the repository toward a longer-term platform for:
 
-- Download any of the [19,794](https://storage.googleapis.com/openimages/web/download.html#attributes) image-level label classes
-- Choose between human-verified (`h`) or machine-generated (`m`) label sub-datasets
-- Select train / validation / test splits
+- dataset acquisition,
+- dataset inspection,
+- annotation conversion,
+- export to training-ready formats,
+- and support for more than one computer-vision workflow.
 
----
+## Initial roadmap
 
-## Getting Started
+### Phase 1
 
-### Prerequisites
+- Project creation with Tauri + SvelteKit shell.
+- Rust backend commands for dataset download and file indexing.
+- Basic project-based UI for class selection and download jobs.
+- Local dataset viewer for images and annotations.
 
-- [Rust](https://www.rust-lang.org/tools/install) (stable toolchain)
-- [Node.js](https://nodejs.org/) ≥ 18 and npm
-- [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS
+### Phase 2
 
-### Installation
+- Open Images version selector.
+- Annotation conversion engine.
+- YOLO-style export support.
+- Saved configuration profiles and dataset manifests.
 
-1. Clone the repository
-   ```bash
-   git clone https://github.com/ry24aai-herts-ac-uk/openimages_workbench.git
-   cd openimages_workbench
-   ```
+### Phase 3
 
-2. Install frontend dependencies
-   ```bash
-   npm install
-   ```
+- Additional export targets beyond YOLO.
+- Validation rules for class maps, missing files, and malformed labels.
+- Batch operations for merge, filter, split, and remap.
+- Plugin-style architecture for future model families.
 
-3. Run in development mode (hot-reload UI + Rust backend)
-   ```bash
-   npm run tauri dev
-   ```
+## Repository status
 
-4. Build a production binary
-   ```bash
-   npm run tauri build
-   ```
+This repository is currently a rewrite and redesign effort, not a drop-in replacement for the original Python toolkit. Feature coverage will grow incrementally as the Rust core, Tauri integration, and SvelteKit UI stabilize.
 
----
+## Inspiration and prior work
 
-## Annotation Format
+- Original project: [`OIDv5_ToolKit-YOLOv3`](https://github.com/RajashekarY/OIDv5_ToolKit-YOLOv3), focused on downloading and visualizing Open Images v5 classes.
+- Related Open Images toolkit forks demonstrated useful extensions such as YOLO label export and improved dataset organization.
+- Open Images documentation and downstream ecosystem tooling show that later dataset versions and broader training integrations are worth supporting.
 
-Annotations are produced in **YOLO format** suitable for darknet / ultralytics training:
+## Contributing
 
-```
-<class_index> <x_center> <y_center> <width> <height>
-```
+Contributions are welcome, especially in these areas:
 
-All coordinates are normalized (0 – 1) relative to image dimensions.
+- Open Images parsers and version adapters.
+- Annotation conversion logic.
+- Desktop UX for dataset inspection.
+- Export pipelines for additional model families.
+- Test datasets and validation workflows.
 
----
+Please open an issue before large changes so the repository structure and roadmap stay coherent.
 
-## Directory Structure (generated dataset)
+## Naming
 
-```
-openimages_workbench/
-│
-└───OID/
-    ├───csv_folder/
-    │    ├── class-descriptions-boxable.csv
-    │    └── validation-annotations-bbox.csv
-    │
-    └───Dataset/
-         ├── test/
-         ├── train/
-         └── validation/
-              ├── Apple/
-              │    ├── 0fdea8a716155a8e.jpg
-              │    └── Labels/
-              │         └── 0fdea8a716155a8e.txt
-              └── Orange/
-                   ├── 0b6f22bf3b586889.jpg
-                   └── Labels/
-                        └── 0b6f22bf3b586889.txt
-```
+The repository name **Open Images Workbench** was chosen to reflect a broader, tool-oriented desktop app rather than a script collection tied to one dataset release or one detector architecture.
 
----
+## License
 
-## Optional Download Filters
-
-| Flag | Description |
-|------|-------------|
-| `IsOccluded` | Include/exclude objects occluded by another object |
-| `IsTruncated` | Include/exclude objects that extend beyond image boundaries |
-| `IsGroupOf` | Include/exclude group annotations (5+ touching instances) |
-| `IsDepiction` | Include/exclude cartoon / drawing depictions |
-| `IsInside` | Include/exclude images taken from inside the object |
-| `n_threads` | Number of parallel download threads |
-| `limit` | Maximum number of images per class |
-
----
-
-## Acknowledgements
-
-This project is built on top of the excellent work by [RajashekarY](https://github.com/RajashekarY) and contributors to the original [OIDv5_ToolKit-YOLOv3](https://github.com/RajashekarY/OIDv5_ToolKit-YOLOv3) Python toolkit. Community contributors to the original project include:
-
-- [Denis Zuenko](https://github.com/zuenko) — multithreading support
-- [Skylion007](https://github.com/Skylion007) — O(n) label creation optimisation
-- [Alex March](https://github.com/hosaka) — download limit option
-- [Michael Baroody](https://github.com/mbaroody) — visualiser fix for multiword classes
-
----
-
-## Citation
-
-If you use this toolkit or the underlying dataset work, please cite the original repository:
-
-```bibtex
-@misc{OIDv5_ToolKit-YOLOv3,
-  title   = {Toolkit to download and visualize single or multiple classes from the huge Open Images v5 dataset},
-  author  = {RajashekarY, Vittorio, Angelo},
-  year    = {2019},
-  publisher = {Github},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/RajashekarY/OIDv5_ToolKit-YOLOv3}},
-}
-```
-
----
-
-## Reference
-
-"[We don't need no bounding-boxes: Training object class detectors using only human verification](https://arxiv.org/abs/1602.08405)" — Papadopoulos et al., CVPR 2016.
+Add the license that matches the intended reuse model for this rewrite.
 
