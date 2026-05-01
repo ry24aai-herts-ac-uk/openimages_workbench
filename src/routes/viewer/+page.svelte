@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { invoke } from '@tauri-apps/api/core';
+  import { invoke, convertFileSrc } from '@tauri-apps/api/core';
   import { onMount } from 'svelte';
   import type { ImageEntry } from '$lib/types';
 
@@ -89,9 +89,8 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Convert the absolute file path to a Tauri-safe asset URL
-    // tauri://localhost/path... works for local files in Tauri v2
-    const safeUrl = `https://asset.localhost/${entry.path.replace(/\\/g, '/')}`;
+    // Use Tauri's convertFileSrc for cross-platform local asset URL conversion
+    const safeUrl = convertFileSrc(entry.path);
 
     const img = new Image();
     img.onload = () => {

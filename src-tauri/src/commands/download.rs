@@ -150,10 +150,27 @@ fn load_bbox_rows(
         }
 
         let image_id = r.get(idx_image).unwrap_or("").trim().to_string();
-        let x_min: f32 = r.get(idx_xmin).unwrap_or("0").trim().parse().unwrap_or(0.0);
-        let x_max: f32 = r.get(idx_xmax).unwrap_or("0").trim().parse().unwrap_or(0.0);
-        let y_min: f32 = r.get(idx_ymin).unwrap_or("0").trim().parse().unwrap_or(0.0);
-        let y_max: f32 = r.get(idx_ymax).unwrap_or("0").trim().parse().unwrap_or(0.0);
+
+        // Parse coordinates; skip this row and log a warning if a value is invalid.
+        let parse_coord = |idx: usize, col_name: &str| -> Option<f32> {
+            let raw = r.get(idx).unwrap_or("").trim();
+            raw.parse::<f32>().map_err(|_| {
+                eprintln!(
+                    "[WARN] Invalid coordinate value '{}' in column '{}' for ImageID '{}'. Row skipped.",
+                    raw, col_name, image_id
+                );
+            }).ok()
+        };
+
+        let (x_min, x_max, y_min, y_max) = match (
+            parse_coord(idx_xmin, "XMin"),
+            parse_coord(idx_xmax, "XMax"),
+            parse_coord(idx_ymin, "YMin"),
+            parse_coord(idx_ymax, "YMax"),
+        ) {
+            (Some(x1), Some(x2), Some(y1), Some(y2)) => (x1, x2, y1, y2),
+            _ => continue, // row has bad coordinate data — skip it
+        };
 
         rows.push(BBoxRow {
             image_id,
@@ -291,7 +308,7 @@ pub async fn start_download(
         None
     };
 
-    let job_id = uuid_v4();
+    let job_id = generate_job_id();
 
     for (split_folder, ann_file) in folders.iter().zip(ann_files.iter()) {
         let ann_path = csv_base.join(ann_file);
@@ -441,7 +458,8 @@ pub async fn start_download(
 // Minimal UUID-v4 replacement (avoids an extra crate for now)
 // ---------------------------------------------------------------------------
 
-fn uuid_v4() -> String {
+/// Generate a unique job identifier based on the current timestamp in nanoseconds.
+fn generate_job_id() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
