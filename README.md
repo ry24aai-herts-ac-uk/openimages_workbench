@@ -114,5 +114,11 @@ The repository name **Open Images Workbench** was chosen to reflect a broader, t
 
 ## License
 
-Add the license that matches the intended reuse model for this rewrite.
+This project is dual‑licensed under:
+
+- An open‑source **AGPL‑3.0** license for non‑commercial and permissively‑run setups, and
+- A **commercial / enterprise license** for organizations that wish to integrate `open-images-workbench` into proprietary products or restricted‑use environments.
+
+See the `LICENSE` file for the open‑source license text and any additional license documents in the repository for the commercial terms.  
+If you plan to use this software in a commercial or production product, please contact the maintainers or check the license page to determine whether a commercial license is required.
 
