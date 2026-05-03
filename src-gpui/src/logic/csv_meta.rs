@@ -12,11 +12,11 @@ const CLASSES_URL: &str =
 const ANNOTATION_URLS: &[(&str, &str)] = &[
     (
         "train-annotations-bbox.csv",
-        "https://storage.googleapis.com/openimages/v6/oidv6-class-descriptions.csv",
+        "https://storage.googleapis.com/openimages/v5/train-annotations-bbox.csv",
     ),
     (
-        "train-annotations-bbox.csv",
-        "https://storage.googleapis.com/openimages/v6/oidv6-class-descriptions-boxable.csv",
+        "validation-annotations-bbox.csv",
+        "https://storage.googleapis.com/openimages/v5/validation-annotations-bbox.csv",
     ),
 ];
 
@@ -24,7 +24,7 @@ const ANNOTATION_URLS: &[(&str, &str)] = &[
 const ANNOTATION_SPLIT_URLS: &[(&str, &str)] = &[
     (
         "train-annotations-bbox.csv",
-        "https://storage.googleapis.com/openimages/v6/oidv6-class-descriptions-boxable.csv",
+        "https://storage.googleapis.com/openimages/v5/train-annotations-bbox.csv",
     ),
     (
         "validation-annotations-bbox.csv",
@@ -105,7 +105,7 @@ pub async fn ensure_annotation_csvs(
         // Find the URL for this annotation file
         let url = match ann_file {
             "train-annotations-bbox.csv" => {
-                "https://storage.googleapis.com/openimages/v6/oidv6-class-descriptions-boxable.csv"
+                "https://storage.googleapis.com/openimages/v5/train-annotations-bbox.csv"
             }
             "validation-annotations-bbox.csv" => {
                 "https://storage.googleapis.com/openimages/v5/validation-annotations-bbox.csv"
@@ -129,4 +129,35 @@ pub async fn ensure_annotation_csvs(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    #[test]
+    fn test_load_classes_empty_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = load_classes(dir.path());
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_load_classes_parses_csv() {
+        let dir = tempfile::tempdir().unwrap();
+        let csv_path = dir.path().join("class-descriptions-boxable.csv");
+        let mut f = std::fs::File::create(&csv_path).unwrap();
+        writeln!(f, "/m/01g317,Person").unwrap();
+        writeln!(f, "/m/0199g,Bicycle").unwrap();
+        writeln!(f, "/m/04_sv,Bus").unwrap();
+
+        let classes = load_classes(dir.path()).unwrap();
+        assert_eq!(classes.len(), 3);
+        assert_eq!(classes[0].name, "Bicycle");
+        assert_eq!(classes[1].name, "Bus");
+        assert_eq!(classes[2].name, "Person");
+        assert_eq!(classes[2].code, "/m/01g317");
+    }
 }

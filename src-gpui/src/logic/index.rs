@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::logic::models::{ImageEntry, YoloBox};
 
-fn parse_yolo_labels(label_path: &Path) -> Vec<YoloBox> {
+pub(crate) fn parse_yolo_labels(label_path: &Path) -> Vec<YoloBox> {
     let content = match std::fs::read_to_string(label_path) {
         Ok(c) => c,
         Err(_) => return vec![],
@@ -110,4 +110,43 @@ pub fn index_dataset(dataset_dir: &Path) -> Result<Vec<ImageEntry>, String> {
     });
 
     Ok(entries)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    #[test]
+    fn test_parse_yolo_labels_valid() {
+        let dir = tempfile::tempdir().unwrap();
+        let label_path = dir.path().join("test.txt");
+        let mut f = std::fs::File::create(&label_path).unwrap();
+        writeln!(f, "0 0.5 0.5 0.4 0.3").unwrap();
+        writeln!(f, "1 0.2 0.8 0.1 0.2").unwrap();
+
+        let boxes = parse_yolo_labels(&label_path);
+        assert_eq!(boxes.len(), 2);
+        assert_eq!(boxes[0].class_idx, 0);
+        assert!((boxes[0].cx - 0.5).abs() < 1e-6);
+        assert_eq!(boxes[1].class_idx, 1);
+    }
+
+    #[test]
+    fn test_parse_yolo_labels_missing_file() {
+        let boxes = parse_yolo_labels(std::path::Path::new("/nonexistent/path.txt"));
+        assert!(boxes.is_empty());
+    }
+
+    #[test]
+    fn test_parse_yolo_labels_malformed() {
+        let dir = tempfile::tempdir().unwrap();
+        let label_path = dir.path().join("bad.txt");
+        let mut f = std::fs::File::create(&label_path).unwrap();
+        writeln!(f, "0 0.5 0.5").unwrap();
+        writeln!(f, "not_a_number 0.5 0.5 0.4 0.3").unwrap();
+
+        let boxes = parse_yolo_labels(&label_path);
+        assert!(boxes.is_empty());
+    }
 }
