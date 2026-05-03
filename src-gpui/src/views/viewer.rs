@@ -43,9 +43,9 @@ impl ViewerView {
             cx.notify();
         });
 
-        cx.background_executor()
-            .spawn(async move { index::index_dataset(&dataset_dir) })
-            .detach_and_then(cx, |result, _this, cx| {
+        cx.spawn(async move |_this, mut cx| {
+            let result = index::index_dataset(&dataset_dir);
+            cx.update(|cx| {
                 app_state.update(cx, |s, cx| {
                     s.viewer.is_loading = false;
                     match result {
@@ -57,7 +57,8 @@ impl ViewerView {
                     }
                     cx.notify();
                 });
-            });
+            }).ok();
+        }).detach();
     }
 }
 
@@ -230,7 +231,7 @@ impl Render for ViewerView {
                         .py_16()
                         .gap_3()
                         .text_color(rgb(TEXT_FAINT))
-                        .child(div().text_4xl().child("🗂"))
+                        .child(div().text_2xl().child("🗂"))
                         .child(
                             div()
                                 .text_sm()

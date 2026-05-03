@@ -150,7 +150,7 @@ fn load_bbox_rows(
     Ok(rows)
 }
 
-fn xyxy_to_xywh(x1: f32, y1: f32, x2: f32, y2: f32) -> (f32, f32, f32, f32) {
+pub(crate) fn xyxy_to_xywh(x1: f32, y1: f32, x2: f32, y2: f32) -> (f32, f32, f32, f32) {
     let cx = (x1 + x2) / 2.0;
     let cy = (y1 + y2) / 2.0;
     let w = x2 - x1;
@@ -383,4 +383,27 @@ pub async fn run_download(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_xyxy_to_xywh() {
+        let (cx, cy, w, h) = xyxy_to_xywh(0.1, 0.2, 0.5, 0.6);
+        assert!((cx - 0.3).abs() < 1e-6);
+        assert!((cy - 0.4).abs() < 1e-6);
+        assert!((w - 0.4).abs() < 1e-6);
+        assert!((h - 0.4).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_xyxy_to_xywh_full_image() {
+        let (cx, cy, w, h) = xyxy_to_xywh(0.0, 0.0, 1.0, 1.0);
+        assert!((cx - 0.5).abs() < 1e-6);
+        assert!((cy - 0.5).abs() < 1e-6);
+        assert!((w - 1.0).abs() < 1e-6);
+        assert!((h - 1.0).abs() < 1e-6);
+    }
 }

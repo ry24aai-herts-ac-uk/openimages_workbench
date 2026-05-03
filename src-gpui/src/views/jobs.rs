@@ -27,6 +27,7 @@ impl Render for JobsView {
         let as_ref = self.app_state.clone();
 
         div()
+            .id("jobs-scroll")
             .size_full()
             .p_6()
             .bg(rgb(BG_APP))
@@ -67,7 +68,7 @@ impl Render for JobsView {
                         .gap_3()
                         .py_16()
                         .text_color(rgb(TEXT_FAINT))
-                        .child(div().text_4xl().child("📭"))
+                        .child(div().text_2xl().child("📭"))
                         .child(
                             div()
                                 .text_sm()

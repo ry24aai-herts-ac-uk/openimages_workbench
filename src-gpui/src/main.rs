@@ -131,18 +131,22 @@ fn main() {
                     s.classes_loading = true;
                     cx.notify();
                 });
-                cx.background_executor()
-                    .spawn(csv_meta::ensure_classes(csv_dir))
-                    .detach_and_then(cx, |result, cx| {
-                        app_state_clone.update(cx, |s, cx| {
-                            s.classes_loading = false;
-                            match result {
-                                Ok(classes) => s.all_classes = classes,
-                                Err(e) => s.classes_error = e,
-                            }
-                            cx.notify();
-                        });
-                    });
+                cx.spawn({
+                    let app_state_clone = app_state_clone.clone();
+                    async move |mut cx| {
+                        let result = csv_meta::ensure_classes(&csv_dir).await;
+                        cx.update(|cx| {
+                            app_state_clone.update(cx, |s, cx| {
+                                s.classes_loading = false;
+                                match result {
+                                    Ok(classes) => s.all_classes = classes,
+                                    Err(e) => s.classes_error = e,
+                                }
+                                cx.notify();
+                            });
+                        }).ok();
+                    }
+                }).detach();
             }
 
             let bounds = Bounds::centered(

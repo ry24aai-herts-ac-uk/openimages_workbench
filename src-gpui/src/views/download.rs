@@ -34,14 +34,11 @@ impl DownloadView {
             cx.notify();
         });
 
-        let weak = cx.weak_entity();
-        cx.background_executor()
-            .spawn(async move {
-                let result = csv_meta::ensure_annotation_csvs(&csv_dir, &split).await;
-                result
-            })
-            .detach_and_then(cx, |result, this, cx| {
-                this.app_state.update(cx, |s, cx| {
+        let app_state = self.app_state.clone();
+        cx.spawn(async move |_this, mut cx| {
+            let result = csv_meta::ensure_annotation_csvs(&csv_dir, &split).await;
+            cx.update(|cx| {
+                app_state.update(cx, |s, cx| {
                     s.download_form.is_loading = false;
                     s.download_form.status_msg = match result {
                         Ok(()) => "✅ Annotation CSVs ready.".to_string(),
@@ -49,7 +46,8 @@ impl DownloadView {
                     };
                     cx.notify();
                 });
-            });
+            }).ok();
+        }).detach();
     }
 
     fn start_download(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
@@ -118,14 +116,15 @@ impl DownloadView {
             .detach();
 
         // Spawn a task to drain the progress channel and update UI state
-        cx.spawn(async move |cx| {
+        let app_state2 = app_state.clone();
+        cx.spawn(async move |_this, mut cx| {
             while let Some(event) = rx.recv().await {
-                let _ = cx.update(|cx| {
-                    app_state.update(cx, |s, cx| {
+                cx.update(|cx| {
+                    app_state2.update(cx, |s, cx| {
                         s.apply_progress(event);
                         cx.notify();
                     });
-                });
+                }).ok();
             }
         })
         .detach();
@@ -183,6 +182,7 @@ impl Render for DownloadView {
         let as_ref = self.app_state.clone();
 
         div()
+            .id("download-scroll")
             .size_full()
             .p_6()
             .bg(rgb(BG_APP))
@@ -264,6 +264,7 @@ impl Render for DownloadView {
                             // Suggestions list
                             .when(!suggestions.is_empty(), |this| {
                                 let mut list = div()
+                                    .id("class-suggestions")
                                     .bg(rgb(BG_INPUT))
                                     .border_1()
                                     .border_color(rgb(BORDER))

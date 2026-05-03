@@ -32,3 +32,6 @@ image = { version = "0.25", default-features = false, features = ["jpeg", "png"]
 # Utilities
 anyhow = "1"
 dirs = "5"
+
+[dev-dependencies]
+tempfile = "3"
