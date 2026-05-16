@@ -37,11 +37,11 @@ openimages_workbench/
 
 - **Rust** 1.78+ with Cargo ([rustup.rs](https://rustup.rs))
 - A **GPU** with Vulkan, Metal, or DirectX 12 support (required by GPUI's renderer)
-- On Linux: `libxkbcommon`, `libxkbcommon-x11`, `libGL`, and Vulkan loader (`libvulkan1`)
+- On Linux: `libxcb`, `libxkbcommon`, `libxkbcommon-x11`, `libGL`, and Vulkan loader (`libvulkan1`)
 
   ```bash
   # Ubuntu / Debian
-  sudo apt-get install libxkbcommon-dev libxkbcommon-x11-dev libgl1-mesa-dev libvulkan1 mesa-vulkan-drivers
+  sudo apt-get install libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libgl1-mesa-dev libvulkan1 mesa-vulkan-drivers
   ```
 
 ## Build & Run
